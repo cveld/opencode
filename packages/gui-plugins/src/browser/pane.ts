@@ -106,7 +106,7 @@ export function createBrowserPane(input: {
           ]),
         ),
         focusedTabID: previous.focusedTabID,
-        partition: `opencode-browser-${crypto.randomUUID()}`,
+        partition: "persist:opencode-browser",
         storageKey,
         fileRoots: [],
       }
@@ -130,16 +130,10 @@ export function createBrowserPane(input: {
       let attached = false
       const stop = () => close(entry, reason)
 
-      const navigate = (event: Electron.Event<{ isMainFrame: boolean; isSameDocument: boolean }>) => {
-        if (event.isMainFrame && !event.isSameDocument) stop()
-      }
-
       win.webContents.once("destroyed", stop)
-      win.webContents.on("did-start-navigation", navigate)
       entry.cleanup = () => {
         if (win.isDestroyed()) return
         win.webContents.off("destroyed", stop)
-        win.webContents.off("did-start-navigation", navigate)
       }
 
       entries.set(binding, entry)
