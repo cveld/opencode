@@ -20,7 +20,7 @@ type Mainless = readonly (Exclude<(typeof mainBuiltins)[number], { readonly id: 
 // @ts-expect-error no main entry provides browser.pane, which the browser's renderer reads through `provides`
 export const mainless: IpcsProvided<typeof builtins, Mainless> = true
 
-equal<IpcsProvided<typeof builtins, Mainless>, MissingMain<"browser.pane">>(true)
+equal<IpcsProvided<typeof builtins, Mainless>, MissingMain<"browser.pane" | "browser.settings">>(true)
 
 const Orphan = Ipc.define({ id: "fixture.orphan", methods: {} })
 

@@ -13,6 +13,8 @@ import { destinationOrigin, fileURLWithin } from "./policy"
 import { createRefs } from "./refs"
 import type { PaneEvent } from "./ipc"
 import { createBrowserRestoreStore } from "./restore"
+import { createCookieStore } from "./cookies"
+import { cookieScopeKey, type CookiePreferences } from "./preferences"
 
 type Target = { readonly server: string; readonly session: string; readonly restore?: Browser.State }
 
@@ -47,11 +49,13 @@ export function createBrowserPane(input: {
   readonly storage: Storage
   /** The declared store of reserved element refs. */
   readonly refs: Persisted<number, number>
+  readonly cookies: Persisted<CookiePreferences, CookiePreferences>
   readonly embeds: Embeds
   readonly emit: (window: number, value: { readonly binding: string; readonly event: PaneEvent }) => void
 }) {
   const entries = new Map<string, Entry>()
   const restore = createBrowserRestoreStore(input.storage)
+  const cookies = createCookieStore(input.storage)
   const shared: Shared = { ref: createRefs(input.refs) }
   // Page disposals in flight. Finishing a trace or CPU profile can hold a page open, and the pane's own disposal waits
   // for them so a replacement never starts beside old pages still recording.
@@ -106,7 +110,7 @@ export function createBrowserPane(input: {
           ]),
         ),
         focusedTabID: previous.focusedTabID,
-        partition: "persist:opencode-browser",
+        partition: `opencode-browser-${crypto.randomUUID()}`,
         storageKey,
         fileRoots: [],
       }
@@ -147,6 +151,14 @@ export function createBrowserPane(input: {
             )
 
             const session = yield* client.session.get({ sessionID })
+            const cookieKey = cookieScopeKey(input.cookies.value, target.server, session.projectID, sessionID)
+
+            if (cookieKey) {
+              yield* Effect.acquireRelease(
+                Effect.tryPromise(() => cookies.attach(cookieKey, entry.partition, entry.abort.signal)),
+                (detach) => Effect.promise(detach),
+              )
+            }
 
             // The agent can already read this workspace, so showing its files adds no access.
             if (server.local) entry.fileRoots = [session.location.directory]
@@ -337,6 +349,7 @@ export function createBrowserPane(input: {
       entries.forEach((entry) => close(entry, "browser.pane.suspended"))
       await Promise.all(releasing)
       await runtime.dispose()
+      await cookies.dispose()
     },
   }
 
