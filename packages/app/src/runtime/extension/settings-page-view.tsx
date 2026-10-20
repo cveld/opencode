@@ -32,7 +32,11 @@ export function ExtensionSettingsPages() {
  * Extension sections on a host settings page, in contribution order; with `section`, the extension rows placed in
  * that host section, rendered where the host lists them.
  */
-export function ExtensionSettingsSections(props: { page: "general" | "servers"; section?: "general" }) {
+export function ExtensionSettingsSections(props: {
+  page: "general" | "servers" | "project-general"
+  section?: "general"
+  project?: { server: string; id: string }
+}) {
   const surface = useSettingsSurface()
 
   return (
@@ -41,6 +45,9 @@ export function ExtensionSettingsSections(props: { page: "general" | "servers"; 
         <Contribution extension={item.extension}>
           {() =>
             item.value.render({
+              get project() {
+                return props.project
+              },
               get target() {
                 return surface.view().target
               },

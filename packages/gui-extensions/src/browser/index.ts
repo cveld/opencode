@@ -3,17 +3,22 @@ import { Extension, Ipc, Store } from "../sdk"
 import { Browser } from "./contract"
 import en from "./i18n/en"
 import type { BrowserPane } from "./ipc"
+import type { BrowserSettings } from "./settings-ipc"
+import { CookiePreferences } from "./preferences"
 
 // The pane's Ipc, which the main entry provides and the renderer's model reads as `ctx.uses.pane` once a session
 // opens. A reference, so its protocol schemas load with the model instead of at startup.
 const Pane = Ipc.ref<typeof BrowserPane>("browser.pane")
 
+const Settings = Ipc.ref<typeof BrowserSettings>("browser.settings")
+
 export default Extension.define({
   id: "browser",
-  provides: { browser: Browser, pane: Pane },
+  provides: { browser: Browser, pane: Pane, settings: Settings },
   stores: {
     // The end of the last block of element refs main reserved, so refs stay unique across reloads.
     refs: Store.main(Schema.Int.check(Schema.isGreaterThanOrEqualTo(0)), 0),
+    cookies: Store.main(CookiePreferences, { default: "project", projects: [] }),
   },
   i18n: {
     en,

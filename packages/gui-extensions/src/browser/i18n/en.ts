@@ -1,4 +1,13 @@
 export default {
+  "settings.cookies.title": "Browser cookies",
+  "settings.cookies.description": "Choose where browser logins are shared. Project is the recommended default. Changes apply when browser sessions reconnect; existing cookies are not moved. Other agents within the selected scope can use the same accounts. Only cookies are shared, not Local Storage or IndexedDB.",
+  "settings.cookies.temporary": "Non-persistent session",
+  "settings.cookies.session": "Persistent session",
+  "settings.cookies.project": "Project",
+  "settings.cookies.global": "Global",
+  "settings.cookies.inherit": "Use app default",
+  "settings.cookies.unavailable": "Browser settings unavailable",
+  "settings.cookies.failed": "Could not save browser cookie settings. Please try again.",
   "command.open": "Open browser",
   "command.reload": "Reload browser page",
   "command.inspect": "Select an element in the browser page",

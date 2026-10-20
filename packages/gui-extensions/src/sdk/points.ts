@@ -326,9 +326,10 @@ export interface SettingsPage {
   /**
    * Adds a section to a host page. Omit it to add a page.
    * - `general`: the General page.
-   * - `servers`: the Servers page.
+    * - `servers`: the Servers page.
+    * - `project-general`: the existing project's General page; `render` receives its server and project id.
    */
-  readonly page?: "general" | "servers"
+   readonly page?: "general" | "servers" | "project-general"
   /**
    * `general`: with `page: "general"`, adds rows to that page's General section instead of a section of its own:
    * `render` returns settings rows, which the host places in its list. Search lists the entries under the host
@@ -354,7 +355,14 @@ export interface SettingsPage {
    */
   render(input: {
     /** The `SettingEntry.id` search is revealing, if any. */
-    readonly target?: string
+     readonly target?: string
+     /** Present only on `project-general`: stable server and project identities for project-owned settings. */
+     readonly project?: {
+       /** The server's `ServerRef.id`; separates identically named projects on different servers. */
+       readonly server: string
+       /** The project's id on that server; stable across worktrees. */
+       readonly id: string
+     }
   }): JSX.Element
 }
 

@@ -2,12 +2,31 @@ import type { MainSetup } from "../sdk/main"
 import type definition from "./index"
 import type { Pane } from "./pane"
 import { BrowserPane } from "./ipc"
+import { BrowserSettings } from "./settings-ipc"
 
 /** The pane once a window first registered one. */
 type LoadedPane = { pane?: Promise<Pane> }
 
 const setup: MainSetup<typeof definition> = (ctx) => {
   const loaded: LoadedPane = {}
+
+  const settings = ctx.provide(BrowserSettings, {
+    state: () => ctx.stores.cookies.value,
+    default(input) {
+      ctx.stores.cookies.update((draft) => {
+        draft.default = input.scope
+      })
+      settings.changed()
+    },
+    project(input) {
+      ctx.stores.cookies.update((draft) => {
+        draft.projects = draft.projects.filter((item) => item.server !== input.server || item.project !== input.project)
+
+        if (input.scope !== "inherit") draft.projects.push(input)
+      })
+      settings.changed()
+    },
+  })
 
   // The pane brings the CDP driver and the full RPC client with every protocol schema;
   // load it when a window first registers a pane instead of at startup.
@@ -18,6 +37,7 @@ const setup: MainSetup<typeof definition> = (ctx) => {
         serverEndpoints: ctx.serverEndpoints,
         storage: ctx.storage,
         refs: ctx.stores.refs,
+        cookies: ctx.stores.cookies,
         embeds: ctx.embeds,
         emit: (window, value) => provider.emit("event", value, window),
       }),

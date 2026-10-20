@@ -1,5 +1,28 @@
 # GUI extensions
 
+Project settings contributions use `SettingsPage` with `page: "project-general"`.
+The host renders these in the existing project's General list and passes
+`input.project.server` (the server identity) and `input.project.id` (the stable
+project identity). Keep project preferences in the extension's own store; do not
+add extension-specific preferences or keys to the host. Unlike app General
+sections, these contributions return settings rows directly.
+
+The browser's cookie preference defaults to Project. App settings offer
+non-persistent session, persistent session, project and global scopes. A project
+can inherit that default or select any scope except global. Project and session
+jar identities include the server identity. Session cookies are deliberately
+retained in persistent scopes, until explicitly removed or invalidated by the
+site; expiring cookies retain their original expiration date.
+
+Each browser attachment still has its own temporary Chromium partition and
+network proxy. Only cookies are restored and synchronized across the chosen
+scope; Local Storage and IndexedDB are not shared. Cookie jars stay in main
+storage, encrypted using Electron's OS-backed `safeStorage`. Persistent browser
+attachments fail when secure storage is unavailable, rather than saving login
+credentials in plaintext. Scope changes apply on the next attachment and do not
+copy existing jars into a broader scope. The previous global Chromium partition
+from PR #53453 is not deleted or automatically imported into project jars.
+
 Every feature of the desktop and web app that is not the core shell is an extension: the terminal, review, files, the browser, SSH, WSL, the updater and more. Each one builds only on the SDK in [`src/sdk`](src/sdk). The SDK is typed so that the common bugs fail to compile or fail the lint, and every declaration has TSDoc, so editor hovers answer most questions. This guide shows how the parts fit, with code from the extensions that ship. [Build your first extension](#build-your-first-extension) walks through [`src/pairing`](src/pairing), a small built-in that uses both processes. `bun run lint` checks every code block marked with its source against that source.
 
 - Window SDK: `@opencode/gui-extensions/sdk` ([`index.ts`](src/sdk/index.ts))

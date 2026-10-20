@@ -18,6 +18,7 @@ import { SettingsList } from "@/settings/list"
 import { SettingsRow } from "@/settings/row"
 import { createEditProjectModel } from "./project-model"
 import "./project.css"
+import { ExtensionSettingsSections } from "@/runtime/extension/settings-page-view"
 
 export const SettingsProjectGeneral: Component<{
   project: LocalProject
@@ -61,6 +62,12 @@ export const SettingsProjectGeneral: Component<{
 
       <div class="settings-tab-body project-settings-general" aria-busy={model.store.saving > 0}>
         <SettingsList>
+          <Show when={props.project.id}>
+            {(id) => <ExtensionSettingsSections
+              page="project-general"
+              project={{ server: ServerConnection.key(props.server), id: id() }}
+            />}
+          </Show>
           <SettingsRow
             title={language.t("project.settings.name.title")}
             description={language.t("project.settings.name.description")}
@@ -128,6 +135,7 @@ export const SettingsProjectGeneral: Component<{
                 <For each={PROJECT_AVATAR_VARIANTS}>
                   {(color) => {
                     const selected = () => getProjectAvatarVariant(model.store.color) === color
+
                     return (
                       <button
                         type="button"
