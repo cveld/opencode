@@ -1,5 +1,24 @@
 # Built-in GUI plugins
 
+Project settings contributions use `SettingsPage` with `page: "project-general"`.
+The host renders these rows in the existing project's General list and passes
+`input.project.server` and `input.project.id`. Project preferences remain in the
+plugin's own store.
+
+Browser cookie persistence defaults to Project. App settings offer temporary,
+persistent-session, project and global scopes; projects can inherit the default
+or override it with any scope except global. Session and project jar identities
+include the server identity. Persistent scopes retain session cookies; expiring
+cookies retain their expiration date.
+
+Each browser attachment keeps a temporary Chromium partition and network proxy.
+Only cookies are restored and synchronized, not Local Storage or IndexedDB.
+Cookie jars are encrypted in main storage using Electron's OS-backed `safeStorage`.
+Persistent attachments fail when secure storage is unavailable rather than storing
+credentials in plaintext. Scope changes apply on the next attachment and do not
+copy existing jars into a broader scope. The previous global Chromium partition
+is not deleted or imported into project jars.
+
 Every feature of the desktop and web app that is not the core shell is a built-in GUI plugin: the terminal, review, files, the browser, SSH, WSL, the updater and more. Each one builds only on the GUI plugin SDK in [`packages/plugin/src/gui`](../plugin/src/gui), the same `@opencode/plugin/gui` that third-party plugins use. The SDK is typed so that the common bugs fail to compile or fail the lint, and every declaration has TSDoc, so editor hovers answer most questions. This guide shows how the parts fit, with code from the plugins that ship. [Build your first plugin](#build-your-first-plugin) walks through [`src/pairing`](src/pairing), a small built-in that uses both processes. `bun run lint` checks every code block marked with its source against that source.
 
 - Window SDK: `@opencode/plugin/gui` ([`index.ts`](../plugin/src/gui/index.ts))

@@ -102,7 +102,7 @@ export function settingsSearchIndex(input: {
   plugins.forEach((item) => {
     const setting = item.value
 
-    if (setting.page === "servers") return
+    if (setting.page === "servers" || setting.page === "project-general") return
 
     if (setting.page === "general") {
       const section = setting.section ? input.translate("settings.general.section.general") : setting.title
@@ -185,6 +185,22 @@ export function settingsSearchIndex(input: {
           project.worktree,
           name,
         )
+      })
+      plugins.forEach((item) => {
+        if (item.value.page !== "project-general") return
+        item.value.entries?.forEach((entry) => items.push({
+          id: JSON.stringify([server.key, project.worktree, item.plugin, entry.id]),
+          title: entry.title,
+          description: entry.description ?? "",
+          keywords: entry.keywords ?? "",
+          owner: `${server.name} · ${name}`,
+          page: item.value.title,
+          server: server.key,
+          project: project.worktree,
+          projectName: name,
+          icon: item.value.icon ?? pageIcons.general,
+          view: { ...destination, target: entry.id },
+        }))
       })
     })
   })
