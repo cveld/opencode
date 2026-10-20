@@ -11,7 +11,7 @@ import { TextInput } from "@opencode/ui/text-input"
 import { For, Show, createMemo, type Component } from "solid-js"
 import { useLanguage } from "@/runtime/i18n/language"
 import type { LocalProject } from "@/shell/state/layout"
-import { type ServerConnection, useServers } from "@/runtime/server/registry"
+import { ServerConnection, useServers } from "@/runtime/server/registry"
 import { useSettingsServers } from "@/settings/servers/inventory"
 import { useServerCtx } from "@/runtime/server/runtime"
 import { projectSettingsKey, useSettings } from "@/settings/model"
@@ -22,6 +22,7 @@ import { SettingsList } from "@/settings/list"
 import { SettingsRow } from "@/settings/row"
 import { createEditProjectModel } from "./project-model"
 import "./project.css"
+import { PluginSettingsSections } from "@/runtime/plugin/settings-page-view"
 
 export const SettingsProjectGeneral: Component<{
   project: LocalProject
@@ -66,6 +67,12 @@ export const SettingsProjectGeneral: Component<{
       <div class="settings-tab-body project-settings-general" aria-busy={model.store.saving > 0}>
         <ProjectFolderMissing />
         <SettingsList>
+          <Show when={props.project.id}>
+            {(id) => <PluginSettingsSections
+              page="project-general"
+              project={{ server: ServerConnection.key(props.server), id: id() }}
+            />}
+          </Show>
           <SettingsRow
             title={language.t("project.settings.name.title")}
             description={language.t("project.settings.name.description")}

@@ -32,7 +32,11 @@ export function PluginSettingsPages() {
  * Plugin sections on a host settings page, in contribution order; with `section`, the plugin rows placed in
  * that host section, rendered where the host lists them.
  */
-export function PluginSettingsSections(props: { page: "general" | "servers"; section?: "general" }) {
+export function PluginSettingsSections(props: {
+  page: "general" | "servers" | "project-general"
+  section?: "general"
+  project?: { server: string; id: string }
+}) {
   const surface = useSettingsSurface()
 
   return (
@@ -41,6 +45,9 @@ export function PluginSettingsSections(props: { page: "general" | "servers"; sec
         <Contribution plugin={item.plugin}>
           {() =>
             item.value.render({
+              get project() {
+                return props.project
+              },
               get target() {
                 return surface.view().target
               },

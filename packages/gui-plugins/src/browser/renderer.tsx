@@ -1,5 +1,5 @@
 import { createMemo, createSignal, getOwner, lazy, onCleanup, runWithOwner, Show, Suspense } from "solid-js"
-import { Command, createKeyed, LinkHandler, MenuItem, Style, type Plugin } from "@opencode/plugin/gui"
+import { Command, createKeyed, LinkHandler, MenuItem, SettingsPage, Style, type Plugin } from "@opencode/plugin/gui"
 import { BuiltinCommand, BuiltinPanel, onIdle, type BuiltinPanelTab } from "@opencode/plugin/gui/builtin"
 import { Browser } from "@opencode/plugin/gui/browser"
 import type definition from "./index"
@@ -34,6 +34,27 @@ const setup: Plugin.Setup<typeof definition> = (ctx) => {
 
   // The native pane is a desktop feature.
   if (ctx.app.platform !== "desktop") return
+  const CookieSettings = lazy(() => import("./settings"))
+  onCleanup(onIdle(() => void CookieSettings.preload()))
+  ctx.add(SettingsPage, {
+    id: "cookies",
+    page: "general",
+    section: "general",
+    get title() { return ctx.t("settings.cookies.title") },
+    get entries() {
+      return [{ id: "browser-cookie-scope", title: ctx.t("settings.cookies.title"), keywords: "browser cookies login persistence" }]
+    },
+    render: () => <Suspense><CookieSettings /></Suspense>,
+  })
+  ctx.add(SettingsPage, {
+    id: "project-cookies",
+    page: "project-general",
+    get title() { return ctx.t("settings.cookies.title") },
+    get entries() {
+      return [{ id: "browser-cookie-scope", title: ctx.t("settings.cookies.title"), keywords: "browser cookies login persistence" }]
+    },
+    render: (input) => <Suspense><CookieSettings project={input.project} /></Suspense>,
+  })
   // Tab trigger styles render with the strip, before the pane chunk loads.
   ctx.add(Style, tabStyles)
   ctx.add(Style, commentStyles)

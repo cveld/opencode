@@ -3,6 +3,8 @@ import type { Plugin } from "@opencode/plugin/gui/main"
 import type { Pane } from "./pane"
 import { RefsStore } from "./refs"
 import { BrowserPane } from "./ipc"
+import { BrowserSettings } from "./settings-ipc"
+import { CookiePreferences } from "./preferences"
 
 /** The pane once a window first registered one. */
 type LoadedPane = { pane?: Promise<Pane> }
@@ -10,6 +12,25 @@ type LoadedPane = { pane?: Promise<Pane> }
 const setup: Plugin.MainSetup = (ctx) => {
   const loaded: LoadedPane = {}
   const refs = ctx.storage.store("refs", RefsStore)
+  const cookies = ctx.storage.store("cookies", { schema: CookiePreferences, initial: { default: "project", projects: [] } })
+
+  const settings = ctx.provide(BrowserSettings, {
+    state: () => cookies.value,
+    default(input) {
+      cookies.update((draft) => {
+        draft.default = input.scope
+      })
+      settings.changed()
+    },
+    project(input) {
+      cookies.update((draft) => {
+        draft.projects = draft.projects.filter((item) => item.server !== input.server || item.project !== input.project)
+
+        if (input.scope !== "inherit") draft.projects.push(input)
+      })
+      settings.changed()
+    },
+  })
 
   // The pane brings the CDP driver and the full RPC client with every protocol schema;
   // load it when a window first registers a pane instead of at startup.
@@ -20,6 +41,7 @@ const setup: Plugin.MainSetup = (ctx) => {
         serverEndpoints: ctx.serverEndpoints,
         storage: builtinMainContext(ctx).storage,
         refs,
+        cookies,
         embeds: ctx.embeds,
         emit: (window, value) => provider.emit("event", value, window),
       }),
