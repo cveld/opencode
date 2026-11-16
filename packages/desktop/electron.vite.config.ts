@@ -112,6 +112,7 @@ export default defineConfig(async ({ command }) => {
       },
     },
     renderer: {
+      server: { port: 5175, strictPort: true },
       experimental: {
         bundledDev: true,
       },

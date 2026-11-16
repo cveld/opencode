@@ -1,6 +1,6 @@
 # Local Desktop integration
 
-Branch: `desktop-integration`. This is a local integration branch, not an upstream PR branch.
+Branch: `desktop-integration-2`. This is a local integration branch, not an upstream PR branch.
 
 ## Included changes
 
@@ -11,6 +11,22 @@ Branch: `desktop-integration`. This is a local integration branch, not an upstre
 ```powershell
 pwsh -NoProfile -File .\script\start-desktop-integration.ps1
 ```
+
+Or use the absolute path from any directory:
+
+```powershell
+pwsh -NoProfile -File "D:\git\github\anomalyco\opencode\desktop-integration-2\script\start-desktop-integration.ps1"
+```
+
+The PM2 entry `opencode-integration-2` invokes this same launcher. Start it through the clean-start script (`$pm2Dir` is the local PM2 configuration directory):
+
+```powershell
+& "$pm2Dir\start-clean.ps1" -Name opencode-integration-2
+```
+
+Slot 1 also has an explicit PM2 entry, `opencode-integration-1`, targeting the sibling `desktop-integration-1` worktree. Both slots are excluded from default all-app startup and from the reboot dump saved by `start-clean.ps1`; both disable automatic restart. Do not use a separate unfiltered `pm2 save` after launching them, as it can put them back into the reboot dump.
+
+Slot 2 uses a separate `ai.opencode.desktop.integration-2` profile, renderer port `5175`, and debugging port `9223`. It discovers and copies the live service executable/version into its own resources; it does not depend on slot 1. The old Temp launcher forwards here for compatibility.
 
 The launcher runs the local Electron renderer with the dev Desktop profile and connects to the already-running service. It copies that service's executable and version into ignored development resources so Desktop's version negotiation does not request an upgrade. It does not install or replace the normal Desktop app, copy its profile, or start the source server. The normal app can remain open. Existing sessions are available through the shared server, but tabs and Desktop preferences belong to the separate dev profile.
 
