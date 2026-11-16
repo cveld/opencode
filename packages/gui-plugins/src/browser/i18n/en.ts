@@ -1,6 +1,7 @@
 export default {
   "settings.cookies.title": "Browser cookies",
-  "settings.cookies.description": "Choose where browser logins are shared. Project is the recommended default. Changes apply when browser sessions reconnect; existing cookies are not moved. Other agents within the selected scope can use the same accounts. Only cookies are shared, not Local Storage or IndexedDB.",
+  "settings.cookies.description":
+    "Choose where browser logins are shared. Project is the recommended default. Changes apply when browser sessions reconnect; existing cookies are not moved. Other agents within the selected scope can use the same accounts. Only cookies are shared, not Local Storage or IndexedDB.",
   "settings.cookies.temporary": "Non-persistent session",
   "settings.cookies.session": "Persistent session",
   "settings.cookies.project": "Project",
@@ -16,6 +17,8 @@ export default {
   "command.newTab": "New browser tab",
   "tab.title": "Browser",
   "tab.new": "New tab",
+  maximize: "Maximize browser pane",
+  restore: "Restore browser pane",
   "address.label": "Browser address",
   "address.search": "Search or enter a URL",
   "address.suggestions": "Suggestions",

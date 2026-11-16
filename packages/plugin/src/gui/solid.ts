@@ -88,6 +88,22 @@ export interface PanelFrame {
   readonly sidebar: PanelSidebar
   /** This plugin's tab ids stored in the session's side strip (the ids `list` receives as `open`). */
   readonly open: Accessor<readonly string[]>
+  /**
+   * Optional host-owned in-window enlargement. Absent on mobile or hosts without this layout capability.
+   * Enlarging preserves the mounted content and saved pane sizes; restoring returns to the original layout.
+   *
+   * @example
+   * ```ts
+   * const panel = usePanel()
+   * panel.maximize?.toggle()
+   * ```
+   */
+  readonly maximize?: {
+    /** Whether this pane currently fills the session workspace. Reactive; only applies while its original tab and session are selected. */
+    readonly active: Accessor<boolean>
+    /** Toggles enlargement of the currently selected pane without changing persisted layout preferences. */
+    toggle(): void
+  }
 }
 
 /**

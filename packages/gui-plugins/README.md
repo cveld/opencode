@@ -221,6 +221,8 @@ It then falls back to the quote's composer tile without closing the editor or di
 | `bindPlugin(component)`                          | One contract component under its provider's context; data methods stay plain   |
 | `onIdle(fn)` (built-ins only)                    | Preloading a lazy chunk while the app is idle                                  |
 
+The browser toolbar uses the optional `usePanel().maximize` capability to enlarge its existing pane within the session workspace. `active()` reports enlargement and `toggle()` restores or enlarges it without changing saved pane widths or split ratios. Hosts without this capability, including mobile views, omit it. The host owns this generic layout behavior: the page stays mounted, and enlargement only applies while its original tab and session are selected.
+
 [Lifetimes](#lifetimes) shows `createKeyed` in files.
 
 ```ts

@@ -814,6 +814,20 @@ export default function SessionBrowserPane(props: {
           </Popover.Portal>
         </Popover>
         <div class="flex shrink-0 items-center gap-1">
+          <Show when={panel.maximize}>
+            {(maximize) => (
+              <Tooltip placement="top" value={plugin.t(maximize().active() ? "restore" : "maximize")}>
+                <IconButton
+                  variant="ghost-muted"
+                  size="large"
+                  aria-label={plugin.t(maximize().active() ? "restore" : "maximize")}
+                  aria-pressed={maximize().active()}
+                  onClick={() => maximize().toggle()}
+                  icon={<Icon name={maximize().active() ? "collapse" : "outline-expand"} />}
+                />
+              </Tooltip>
+            )}
+          </Show>
           <Tooltip placement="top" value={tip(plugin.t("inspect"), keybinds.keybind("browser.inspect"))}>
             {/* The ghost variant sets the button color, so the active accent needs precedence over it. */}
             <IconButton

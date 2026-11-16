@@ -1,14 +1,4 @@
-import {
-  For,
-  Show,
-  createEffect,
-  createMemo,
-  createSignal,
-  on,
-  onCleanup,
-  type Accessor,
-  type JSX,
-} from "solid-js"
+import { For, Show, createEffect, createMemo, createSignal, on, onCleanup, type Accessor, type JSX } from "solid-js"
 import { createStore } from "solid-js/store"
 import { createMediaQuery } from "@solid-primitives/media"
 import { createEventListener } from "@solid-primitives/event-listener"
@@ -25,6 +15,7 @@ import {
   type MountedSession,
   type SessionScreen,
   type PanelSidebar,
+  type PanelFrame,
   type SessionPanelMenuItem,
 } from "@opencode/plugin/gui"
 import { useCommand } from "@/shell/commands/command"
@@ -65,12 +56,19 @@ export function SideRegion(props: {
   // Once shown, the contents stay mounted while the region is hidden, so reopening doesn't rebuild them mid-flight.
   const contentMounted = createMemo<boolean>((mounted) => mounted || tabsVisible(), false)
   const panelWidth = createMemo(() => (tabsVisible() ? "auto" : "0px"))
+  const [enlargement, setEnlargement] = createStore({ session: "", pane: "", tab: "" })
+
+  const enlarged = createMemo(() =>
+    tabsOpen() &&
+    enlargement.session === props.view.key &&
+    props.region.pane(enlargement.pane === "split" ? "split" : "side").selected()?.key === enlargement.tab
+      ? enlargement.pane
+      : "",
+  )
 
   // Opening the side region with no tabs shows a new tab view, once per opening and session. Keyed by the session, not
   // the item, whose object changes with every routed session.
-  const starting = createMemo(() =>
-    tabsOpen() && layout.ready() && props.region.empty() ? props.view.key : undefined,
-  )
+  const starting = createMemo(() => (tabsOpen() && layout.ready() && props.region.empty() ? props.view.key : undefined))
 
   createEffect(on(starting, (key) => key && props.region.openNewTab("side")))
 
@@ -111,9 +109,10 @@ export function SideRegion(props: {
         aria-label={language.t("session.panel.reviewAndFiles")}
         aria-hidden={!tabsOpen()}
         data-focused={props.region.focus.focused() || undefined}
+        data-maximized={!!enlarged() || undefined}
         class="relative h-full shrink-0 min-w-0 flex overflow-hidden bg-v2-background-bg-base rounded-[10px] shadow-[var(--v2-elevation-raised)] outline-none"
-        classList={{ "flex-1": tabsVisible() }}
-        style={{ width: panelWidth() }}
+        classList={{ "flex-1": tabsVisible(), "!absolute inset-0 z-40": !!enlarged() }}
+        style={{ width: enlarged() ? "100%" : panelWidth() }}
       >
         {/* Takes the pointer while the panel closes. Inherited pointer-events or inert would restyle every element in
             the panel when they flip; once closed, the screen skips the region with content-visibility instead. */}
@@ -122,7 +121,7 @@ export function SideRegion(props: {
           <div
             data-slot="session-review-content"
             class="h-full flex shrink-0 contain-strict"
-            style={{ width: "var(--panel-hold-width, var(--session-side-content-width, 100%))" }}
+            style={{ width: enlarged() ? "100%" : "var(--panel-hold-width, var(--session-side-content-width, 100%))" }}
           >
             <div
               ref={stack}
@@ -137,10 +136,13 @@ export function SideRegion(props: {
                     classList={{
                       "flex-1": panes().length === 1 || index() === 0,
                       "shrink-0 border-t border-v2-border-border-base": index() > 0,
+                      "!hidden": !!enlarged() && enlarged() !== pane,
+                      "!flex-1 !border-t-0": enlarged() === pane,
                     }}
-                    style={index() > 0 ? { height: `${lowerHeight()}px` } : undefined}
+                    inert={(!!enlarged() && enlarged() !== pane) || undefined}
+                    style={index() > 0 && !enlarged() ? { height: `${lowerHeight()}px` } : undefined}
                   >
-                    <Show when={index() > 0}>
+                    <Show when={index() > 0 && !enlarged()}>
                       <div onPointerDown={() => props.size.start()}>
                         <ResizeHandle
                           direction="vertical"
@@ -163,7 +165,16 @@ export function SideRegion(props: {
                       view={props.view}
                       screen={props.screen}
                       sidebar={props.sidebar}
-                      shown={tabsOpen}
+                      maximize={{
+                        active: () => enlarged() === pane,
+                        toggle: () =>
+                          setEnlargement(
+                            enlarged() === pane
+                              ? { session: "", pane: "", tab: "" }
+                              : { session: props.view.key, pane, tab: props.region.pane(pane).selected()?.key ?? "" },
+                          ),
+                      }}
+                      shown={() => tabsOpen() && (!enlarged() || enlarged() === pane)}
                       present={tabsVisible}
                       animate={() => !props.size.active()}
                       placeholder={index() === 0}
@@ -188,6 +199,8 @@ export function PaneTabs(props: {
   view: MountedSession
   screen: SessionScreen
   sidebar: PanelSidebar
+  /** Optional host-owned enlargement, unavailable for panes rendered outside the side region. */
+  maximize?: PanelFrame["maximize"]
   /** The pane is on screen. */
   shown: Accessor<boolean>
   /** The pane stays rendered, e.g. while it animates closed. */
@@ -460,6 +473,7 @@ export function PaneTabs(props: {
             reserve: () => false,
             animate: props.animate,
             sidebar: props.sidebar,
+            maximize: props.maximize,
           }}
         />
       </div>

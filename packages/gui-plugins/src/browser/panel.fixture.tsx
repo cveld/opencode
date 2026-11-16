@@ -88,6 +88,7 @@ type PaneFixtureState = {
   moving: boolean
   /** The pane box's width, which its resize handle drags. */
   width: number
+  maximized: boolean
   /** Whether a host dialog is open over the app. */
   dialog: boolean
   captures: number
@@ -152,6 +153,7 @@ export function mountBrowserPane(input: PaneHost) {
       covered: false,
       moving: false,
       width: 640,
+      maximized: false,
       dialog: false,
       captures: 0,
       holdCapture: false,
@@ -245,6 +247,10 @@ export function mountBrowserPane(input: PaneHost) {
       animate: () => false,
       sidebar: { opened: () => false, width: () => 0, transition: () => false, resize() {}, toggle() {} },
       open: () => [],
+      maximize: {
+        active: () => store.maximized,
+        toggle: () => setStore("maximized", (value) => !value),
+      },
     }
 
     const server = {
@@ -534,9 +540,7 @@ export function mountBrowserPane(input: PaneHost) {
               aria-label="Picked element scenario"
               onChange={(event) => setStore("selection", event.currentTarget.value)}
             >
-              <For each={["default", "long", "fallback", "low", "zoomed"]}>
-                {(value) => <option>{value}</option>}
-              </For>
+              <For each={["default", "long", "fallback", "low", "zoomed"]}>{(value) => <option>{value}</option>}</For>
             </select>
             <button onClick={() => setStore("history", { visits })}>Seed history</button>
             <button onClick={() => emit(store.session, { type: "page", tabID: current().id, icon, zoom: store.zoom })}>
@@ -558,7 +562,14 @@ export function mountBrowserPane(input: PaneHost) {
           </For>
           <p>Highlights: {store.highlights.map((item) => item.ref ?? "clear").join(",")}</p>
           <p>Highlight owners: {store.highlights.map((item) => item.sessionKey).join(",")}</p>
-          <div style={{ position: "relative", width: `${store.width}px`, height: "360px", border: "1px solid #555" }}>
+          <div
+            style={{
+              position: "relative",
+              width: store.maximized ? "100%" : `${store.width}px`,
+              height: "360px",
+              border: "1px solid #555",
+            }}
+          >
             <Show when={store.mounted && session()}>
               {(view) => <SessionBrowserPane tab={() => current()} session={view()} screen={screen} model={model} />}
             </Show>

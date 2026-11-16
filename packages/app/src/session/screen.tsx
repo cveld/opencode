@@ -457,7 +457,11 @@ function SessionScreenContent(props: {
   return (
     <>
       <div class="flex-1 min-h-0 flex flex-col gap-2 px-[var(--shell-inline-inset,8px)] pb-[var(--shell-bottom-inset,8px)] pt-[var(--shell-top-inset,8px)]">
-        <div ref={screen.panel.ref} data-pane-row class="relative flex-1 min-h-0 flex flex-col md:flex-row gap-2">
+        <div
+          ref={screen.panel.ref}
+          data-pane-row
+          class="relative flex-1 min-h-0 flex flex-col md:flex-row gap-2 [&:has([data-maximized=true])>[data-slot=session-side-panel-presence]]:!absolute [&:has([data-maximized=true])>[data-slot=session-side-panel-presence]]:!inset-0 [&:has([data-maximized=true])>[data-slot=session-side-panel-presence]]:!z-40 [&:has([data-maximized=true])>[data-slot=session-chat-panel]]:invisible"
+        >
           {/* Keep the control outside panel animations. */}
           <Show when={isDesktop() && messagesReady() && session.identity.params.id}>
             <div

@@ -31,6 +31,34 @@ story.beforeEach(async ({ mount, page }) => {
   await expect(page.getByTestId("native-Alpha")).toHaveAttribute("data-visible", "true")
 })
 
+story("the toolbar enlarges and restores the mounted browser without navigating", async ({ page }) => {
+  const root = page.getByTestId("browser-pane-fixture")
+  const address = root.getByRole("combobox", { name: "Browser address" })
+  const pane = root.locator("#browser-panel")
+  const native = root.getByTestId("native-Alpha")
+
+  await expect(native).toHaveAttribute("data-visible", "true")
+  await page.evaluate(() => document.fonts.ready.then(() => undefined))
+  const original = (await pane.boundingBox())!
+  const url = await address.inputValue()
+  const handle = await pane.elementHandle()
+
+  await root.getByRole("button", { name: "Maximize browser pane", exact: true }).click()
+  await expect(root.getByRole("button", { name: "Restore browser pane", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  )
+  await expect.poll(async () => (await pane.boundingBox())!.width).toBeGreaterThan(original.width)
+  await expect(address).toHaveValue(url)
+  expect(await handle!.evaluate((element) => element.isConnected)).toBe(true)
+
+  await root.getByRole("button", { name: "Restore browser pane", exact: true }).click()
+  await expect.poll(async () => (await pane.boundingBox())!.width).toBe(original.width)
+  await expect(address).toHaveValue(url)
+  await expect(native).toHaveAttribute("data-visible", "true")
+  expect(await handle!.evaluate((element) => element.isConnected)).toBe(true)
+})
+
 story("hides a native page when another takes the pane, the pane hides, or it unmounts", async ({ page }) => {
   const root = page.getByTestId("browser-pane-fixture")
   const alpha = root.getByTestId("native-Alpha")

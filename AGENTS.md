@@ -3,6 +3,10 @@
 - This repository does not use Changesets. Do not add `.changeset` files; follow the existing release workflow instead.
 - The default branch is `dev`. Base branches and worktrees on `origin/dev`, target PRs at `dev`, and diff against `origin/dev` unless told otherwise.
 
+## Local integration docs
+
+[Desktop integration](DESKTOP-INTEGRATION.md) — read when working with the local Desktop integration slots, their worktrees, launchers, PM2 startup policy or shared-service behavior.
+
 ## Live TUI Testing
 
 - Run `bun run dev:live` from a development worktree to test its TUI against the currently elected `opencode` background server and live sessions.

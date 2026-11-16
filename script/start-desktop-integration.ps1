@@ -43,6 +43,21 @@ try {
     }
     node $electron
     if ($LASTEXITCODE -ne 0) { throw 'Electron preparation failed.' }
+    $manifest = Join-Path $root '.cache/slot1-signed-electron/runtime.json'
+    if (-not (Test-Path $manifest)) {
+        throw 'Prepare the signed slot 1 runtime first: pwsh -NoProfile -File script/prepare-slot1-signed-runtime.ps1'
+    }
+    $runtime = Get-Content $manifest -Raw | ConvertFrom-Json
+    Remove-Item Env:ELECTRON_OVERRIDE_DIST_PATH -ErrorAction SilentlyContinue
+    $source = node -p "require('electron')" | Select-Object -Last 1
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve the installed Electron runtime.' }
+    # Use PowerShell 7 for Authenticode checks, even when PM2 launched Windows PowerShell.
+    $check = '& { param($file, $thumbprint, $source, $hash) if ((Get-FileHash $source -Algorithm SHA256).Hash -ne $hash) { throw "Electron changed; rerun script/prepare-slot1-signed-runtime.ps1" }; $s = Get-AuthenticodeSignature $file; if ($s.Status -ne "Valid" -or $s.SignerCertificate.Thumbprint -ne $thumbprint) { throw "Invalid slot 1 runtime signature" } }'
+    $command = "$check '$($runtime.executable.Replace("'", "''"))' '$($runtime.thumbprint)' '$($source.Replace("'", "''"))' '$($runtime.sourceHash)'"
+    pwsh -NoProfile -EncodedCommand ([Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command)))
+    if ($LASTEXITCODE -ne 0) { throw 'Signed slot 1 runtime validation failed.' }
+    $env:ELECTRON_EXEC_PATH = $runtime.executable
+    $env:ELECTRON_OVERRIDE_DIST_PATH = Split-Path $runtime.executable
     Write-Host "Starting desktop-integration against existing service $($info.version)."
     bunx --no-install electron-vite dev
     if ($LASTEXITCODE -ne 0) { throw 'Desktop exited with an error.' }
